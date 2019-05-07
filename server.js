@@ -1,3 +1,4 @@
+#!/usr/bin/env nodejs
 var http = require("http");
 var fs = require("fs");
 
