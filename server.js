@@ -1,22 +1,13 @@
-#!/usr/bin/env nodejs
-var http = require("http");
-var fs = require("fs");
+var express = require("express");
+var app = express();
+var server = require("http").Server(app);
 
-function onRequest(req, res) {
-  console.log("A user made a request" + req.url);
-  if (req.method == "GET" && req.url == "/") {
-    res.writeHead(200, { "content-type": "text/html" });
-    fs.createReadStream("./index.html").pipe(res);
-  } else {
-    send404Response(res);
-  }
-}
+app.use(express.static(__dirname + "/public"));
 
-function send404Response(res) {
-  res.writeHead(404, { "content-type": "text/plain" });
-  res.write("Error 404, Page not found");
-  res.end();
-}
+app.get("/", function(req, res) {
+  res.sendFile(__dirname + "/index.html");
+});
 
-http.createServer(onRequest).listen(8000);
-console.log("Server is running on a port over 8000");
+server.listen(8081, function() {
+  console.log(`Listening on ${server.address().port}`);
+});
