@@ -37,7 +37,7 @@ function create() {
   this.tileset = this.map.addTilesetImage("pacman-tiles", "pacman-tiles");
   this.layer = this.map.createDynamicLayer("Pacman", this.tileset);
 
-  this.pacman = this.physics.add.sprite(23, 23, "pacman", 0); //.setOrigin(0.5);
+  this.pacman = this.physics.add.sprite(225, 280, "pacman", 0); //.setOrigin(0.5);
 
   var configDot = {
     key: "dot",
