@@ -18,6 +18,7 @@ var config = {
 };
 
 var cursors;
+var score = 0;
 var game = new Phaser.Game(config);
 this.pacman = null;
 
@@ -37,21 +38,9 @@ function create() {
   this.tileset = this.map.addTilesetImage("pacman-tiles", "pacman-tiles");
   this.layer = this.map.createDynamicLayer("Pacman", this.tileset);
 
-  this.pacman = this.physics.add.sprite(225, 280, "pacman", 0); //.setOrigin(0.5);
-
-  var configDot = {
-    key: "dot"
-  };
-
-  this.dots = this.map.createFromTiles(7, 14, configDot);
-  for(var i = 0; i < this.dots.length; i++){
-    this.dots[i].x += 8;
-    this.dots[i].y += 8;
-  }
-
-  this.map.setCollisionByExclusion([14], true, false, this.layer);
-  //this.map.setCollisionBetween(0,13);
-
+  this.pacman = this.physics.add.sprite(225, 280, "pacman", 0); 
+  this.pacman.body.setSize(16, 16, true);
+  this.pacman.body.setCollideWorldBounds(true);
   this.anims.create({
     key: "munch",
     repeat: -1,
@@ -60,15 +49,23 @@ function create() {
   });
   this.pacman.play("munch");
 
+  var configDot = {
+    key: "dot"
+  };
+  this.dots = this.map.createFromTiles(7, 14, configDot);
+  for(var i = 0; i < this.dots.length; i++){
+    this.dots[i].x += 8;
+    this.dots[i].y += 8;
+    this.physics.add.existing(this.dots[i], false);
+  }
+  this.dotss = this.physics.add.group(this.dots);
+
+  this.map.setCollisionByExclusion([14], true, false, this.layer);
+
   cursors = this.input.keyboard.createCursorKeys();
 
-  //this.dots = this.add.physicsGroup();
   this.physics.add.collider(this.pacman, this.layer);
-  //this.pacman.body.setEnable();
-  this.pacman.body.setSize(16, 16, true);
-  this.pacman.body.setCollideWorldBounds(true);
-
-  /*
+   /* 
     const debugGraphics = this.add.graphics().setAlpha(0.75);
     this.map.renderDebug(debugGraphics, {
         tileColor: null, // Color of non-colliding tiles
@@ -80,6 +77,8 @@ function create() {
 
 function update() {
   // Horizontal movement
+  this.physics.overlap(this.pacman, this.dotss, eatDots, null, this)
+
   if (cursors.left.isDown) {
     this.pacman.body.setVelocityX(-100);
     this.pacman.angle = 180;
@@ -95,6 +94,21 @@ function update() {
   } else if (cursors.down.isDown) {
     this.pacman.body.setVelocityY(100);
     this.pacman.angle = 90;
-  } else {
   }
+}
+
+function eatDots(pacman, dot){
+    if(dot.active){
+        score += 1;
+    }
+    dot.body.setEnable(false);
+    this.dotss.killAndHide(dot);
+    if(this.dotss.countActive() === 0){
+        this.dotss.children.iterate(function (child) {
+            child.setActive(true);
+            child.setVisible(true);
+            child.body.setEnable(true);
+        });
+    }
+    console.log(score.toString());
 }
