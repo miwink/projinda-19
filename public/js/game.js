@@ -40,12 +40,14 @@ function create() {
   this.pacman = this.physics.add.sprite(225, 280, "pacman", 0); //.setOrigin(0.5);
 
   var configDot = {
-    key: "dot",
-    x: 0.5,
-    y: 0.5
+    key: "dot"
   };
 
   this.dots = this.map.createFromTiles(7, 14, configDot);
+  for(var i = 0; i < this.dots.length; i++){
+    this.dots[i].x += 8;
+    this.dots[i].y += 8;
+  }
 
   this.map.setCollisionByExclusion([14], true, false, this.layer);
   //this.map.setCollisionBetween(0,13);
