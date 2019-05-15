@@ -27,7 +27,7 @@ app.use((request, response, next) => {
 //Home page
 app.get("/", (req, res) => {
   res.render('index', {
-    name: "Michael"
+    name: "Johanna & Michael"
   })
 });
 
