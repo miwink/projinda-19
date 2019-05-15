@@ -1,5 +1,9 @@
 # projinda-19
 
+### Authors
+
+Contributers to this repo is Michael Wink and Johanna Löv.
+
 ### Pacman with Phaser 3
 
 This repo generates a basic Phaser 3 demonstration of Pacman.
@@ -21,14 +25,18 @@ Eat coins to gain points. Once runing in to a ghost the game is over. Use cursor
 
 ---
 
-For running the script you need [Nodejs](https://nodejs.org/en/)
-the game will run on port 8000, locally.
-To open the game locally you run these commands in your terminal:
+For running the script locally you need to install 
+[Nodejs](https://nodejs.org/en/)
 
-| Command     | Description                                           |
-| ----------- | ----------------------------------------------------- |
-| npm install | Install dependencies and launch browser with examples |
-|             |                                                       |
+To run the program locally run the following commands in your terminal:
+
+| Command        | Description                                           |
+| -------------- | ----------------------------------------------------- |
+| npm install    | Install dependencies and launch browser with examples |
+| node server.js | To run program                                        |
+
+To open the game locally got to http://localhost:8000 in a browser.
+
 
 ### Repository structure
 
