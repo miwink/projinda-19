@@ -117,5 +117,3 @@ function eatDots(pacman, dot) {
   }
   console.log(score.toString());
 }
-
-function updateScoreBoard() {}
