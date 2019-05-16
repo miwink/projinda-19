@@ -29,6 +29,10 @@ function preload() {
     frameWidth: 32,
     frameHeight: 32
   });
+  this.load.spritesheet("ghosts", "../assets/ghosts32.png", {
+    frameWidth: 32,
+    frameHeight: 32
+  });
   this.load.image("dot", "../assets/dot.png");
 }
 
@@ -39,12 +43,58 @@ function create() {
 
   this.pacman = this.physics.add.sprite(225, 280, "pacman", 0); //.setOrigin(0.5);
 
+  //Adding ghost sprites
+
+  this.ghost1 = this.physics.add.sprite(225, 240, "ghosts", 0);
+  this.ghost2 = this.physics.add.sprite(210, 225, "ghosts", 0);
+  this.ghost3 = this.physics.add.sprite(240, 240, "ghosts", 0);
+  this.ghost4 = this.physics.add.sprite(240, 220, "ghosts", 0);
+
+  //Animate ghosts
+  this.anims.create({
+    key: "ghostyblue",
+    repeat: -1,
+    frameRate: 3,
+    frames: this.anims.generateFrameNames("ghosts", { start: 0, end: 3 })
+  });
+  this.ghost1.play("ghostyblue");
+
+  this.anims.create({
+    key: "ghostyellow",
+    repeat: -1,
+    frameRate: 2,
+    frames: this.anims.generateFrameNames("ghosts", { start: 4, end: 7 })
+  });
+  this.ghost2.play("ghostyellow");
+
+  this.anims.create({
+    key: "ghostpink",
+    repeat: -1,
+    frameRate: 5,
+    frames: this.anims.generateFrameNames("ghosts", { start: 8, end: 11 })
+  });
+  this.ghost3.play("ghostpink");
+
+  this.anims.create({
+    key: "ghostred",
+    repeat: -1,
+    frameRate: 3,
+    frames: this.anims.generateFrameNames("ghosts", { start: 12, end: 15 })
+  });
+  this.ghost4.play("ghostred");
+
+  //Collision detection for ghosts
+  this.physics.add.collider(this.ghost1, this.layer);
+  this.physics.add.collider(this.ghost2, this.layer);
+  this.physics.add.collider(this.ghost3, this.layer);
+  this.physics.add.collider(this.ghost4, this.layer);
+
   var configDot = {
     key: "dot"
   };
 
   this.dots = this.map.createFromTiles(7, 14, configDot);
-  for(var i = 0; i < this.dots.length; i++){
+  for (var i = 0; i < this.dots.length; i++) {
     this.dots[i].x += 8;
     this.dots[i].y += 8;
   }
