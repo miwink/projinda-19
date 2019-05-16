@@ -17,6 +17,7 @@ var config = {
 };
 
 var cursors;
+var score = 0;
 var game = new Phaser.Game(config);
 this.pacman = null;
 const dirs = {
@@ -43,11 +44,24 @@ function preload() {
 }
 
 function create() {
+  scoreText = this.add.text(550, 210, "score: 0", {
+    fontSize: "32px",
+    fill: "#ffffff"
+  });
   this.map = this.add.tilemap("map");
   this.tileset = this.map.addTilesetImage("pacman-tiles", "pacman-tiles");
   this.layer = this.map.createDynamicLayer("Pacman", this.tileset);
 
-  this.pacman = this.physics.add.sprite(225, 280, "pacman", 0); //.setOrigin(0.5);
+  this.pacman = this.physics.add.sprite(225, 280, "pacman", 0);
+  this.pacman.body.setSize(16, 16, true);
+  this.pacman.body.setCollideWorldBounds(true);
+  this.anims.create({
+    key: "munch",
+    repeat: -1,
+    frameRate: 7,
+    frames: this.anims.generateFrameNames("pacman", { start: 0, end: 3 })
+  });
+  this.pacman.play("munch");
 
   //Adding ghost sprites
 
@@ -99,32 +113,22 @@ function create() {
   var configDot = {
     key: "dot"
   };
-
   this.dots = this.map.createFromTiles(7, 14, configDot);
   for (var i = 0; i < this.dots.length; i++) {
     this.dots[i].x += 8;
     this.dots[i].y += 8;
+    this.physics.add.existing(this.dots[i], false);
   }
+  this.dotss = this.physics.add.group(this.dots);
 
   this.map.setCollisionByExclusion([14], true, false, this.layer);
-
-  this.anims.create({
-    key: "munch",
-    repeat: -1,
-    frameRate: 7,
-    frames: this.anims.generateFrameNames("pacman", { start: 0, end: 3 })
-  });
-  this.pacman.play("munch");
 
   cursors = this.input.keyboard.createCursorKeys();
 
   this.physics.add.collider(this.pacman, this.layer);
-  this.pacman.body.setSize(16, 16, true);
-  this.pacman.body.setCollideWorldBounds(true);
 }
 
 function update() {
-  // Horizontal movement
   this.physics.overlap(this.pacman, this.ghosts, killPacman, null, this);
     this.ghosts.children.iterate(function(ghost) {
         if(Math.round(ghost.body.x) % 16 === 0 && (Math.round(ghost.body.y) % 16 === 0)){
@@ -133,6 +137,9 @@ function update() {
         }
     }, this);
 
+  this.physics.overlap(this.pacman, this.dotss, eatDots, null, this);
+
+  // Horizontal movement
   if (cursors.left.isDown) {
     this.pacman.body.setVelocityX(-100);
     this.pacman.angle = 180;
@@ -224,4 +231,21 @@ function checkDirection(sprite, map){
 function killPacman(pacman, ghost){
    console.log("DEAD"); 
    pacman.visible = false;
+}
+
+function eatDots(pacman, dot) {
+  if (dot.active) {
+    score += 10;
+    scoreText.setText("Score: " + score);
+  }
+  dot.body.setEnable(false);
+  this.dotss.killAndHide(dot);
+  if (this.dotss.countActive() === 0) {
+    this.dotss.children.iterate(function(child) {
+      child.setActive(true);
+      child.setVisible(true);
+      child.body.setEnable(true);
+    });
+  }
+  console.log(score.toString());
 }
