@@ -1,7 +1,7 @@
 var config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  //width: 800,
+  //height: 600,
   scene: {
     preload: preload,
     create: create,
@@ -10,16 +10,19 @@ var config = {
   physics: {
     default: "arcade",
     arcade: {
-    //  debug: true,
+      debug: true,
       gravity: { y: 0 }
     }
+  },
+  scale: {
+    width: '100%',
+    height: '100%'
   }
 };
 
 var cursors;
 var score = 0;
 var game = new Phaser.Game(config);
-this.pacman = null;
 const dirs = {
     UP: 12,
     DOWN: 11,
@@ -52,61 +55,28 @@ function create() {
   this.tileset = this.map.addTilesetImage("pacman-tiles", "pacman-tiles");
   this.layer = this.map.createDynamicLayer("Pacman", this.tileset);
 
-  this.pacman = this.physics.add.sprite(225, 280, "pacman", 0);
-  this.pacman.body.setSize(16, 16, true);
-  this.pacman.body.setCollideWorldBounds(true);
-  this.anims.create({
-    key: "munch",
-    repeat: -1,
-    frameRate: 7,
-    frames: this.anims.generateFrameNames("pacman", { start: 0, end: 3 })
-  });
+  loadAnims(this.anims);
+  this.pacman = new Sprite(this.scene.scene, 225, 280, "pacman");
+
   this.pacman.play("munch");
 
   //Adding ghost sprites
-
-  this.ghost1 = this.physics.add.sprite(24, 40, "ghosts", 0);
-  this.ghost2 = this.physics.add.sprite(216, 232, "ghosts", 0);
-  this.ghost3 = this.physics.add.sprite(216, 232, "ghosts", 0);
-  this.ghost4 = this.physics.add.sprite(216, 232, "ghosts", 0);
-
-  //Animate ghosts
-  this.anims.create({
-    key: "ghostyblue",
-    repeat: -1,
-    frameRate: 3,
-    frames: this.anims.generateFrameNames("ghosts", { start: 0, end: 3 })
-  });
-  this.ghost1.play("ghostyblue");
-    
-  this.anims.create({
-    key: "ghostyellow",
-    repeat: -1,
-    frameRate: 2,
-    frames: this.anims.generateFrameNames("ghosts", { start: 4, end: 7 })
-  });
-  this.ghost2.play("ghostyellow");
-
-  this.anims.create({
-    key: "ghostpink",
-    repeat: -1,
-    frameRate: 5,
-    frames: this.anims.generateFrameNames("ghosts", { start: 8, end: 11 })
-  });
-  this.ghost3.play("ghostpink");
-
-  this.anims.create({
-    key: "ghostred",
-    repeat: -1,
-    frameRate: 3,
-    frames: this.anims.generateFrameNames("ghosts", { start: 12, end: 15 })
-  });
-  this.ghost4.play("ghostred");
-
-  this.ghosts = this.physics.add.group([this.ghost1, this.ghost2, this.ghost3, this.ghost4]);
-  this.ghosts.children.iterate(function(ghost){
-    ghost.body.setSize(16,16,true);
-  });
+    var ghostAnims = ["ghostyblue", "ghostyellow", "ghostpink", "ghostred"];
+    var groupConfig = {
+        classType: Sprite,
+        setXY: {
+            x: 216,
+            y: 232
+        },
+        key: "ghosts",
+        repeat: 3
+    }
+    this.ghosts = this.physics.add.group(groupConfig);
+    var i = 0;
+    this.ghosts.children.iterate(function(ghost){
+        ghost.play(ghostAnims[i]);
+        i++;
+    });
   //Collision detection for ghosts
   this.physics.add.collider(this.ghosts, this.layer);
 
@@ -126,10 +96,11 @@ function create() {
   cursors = this.input.keyboard.createCursorKeys();
 
   this.physics.add.collider(this.pacman, this.layer);
+    console.log(this.constructor.name);
 }
 
 function update() {
-  this.physics.overlap(this.pacman, this.ghosts, killPacman, null, this);
+    this.physics.overlap(this.pacman, this.ghosts, killPacman, null, this);
     this.ghosts.children.iterate(function(ghost) {
         if(Math.round(ghost.body.x) % 16 === 0 && (Math.round(ghost.body.y) % 16 === 0)){
             var ghostDir = checkDirection(ghost, this.map);
@@ -137,7 +108,7 @@ function update() {
         }
     }, this);
 
-  this.physics.overlap(this.pacman, this.dotss, eatDots, null, this);
+    this.physics.overlap(this.pacman, this.dotss, eatDots, null, this);
 
   // Horizontal movement
   if (cursors.left.isDown) {
