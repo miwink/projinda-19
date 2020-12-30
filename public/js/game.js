@@ -10,13 +10,14 @@ var config = {
   physics: {
     default: "arcade",
     arcade: {
-      debug: true,
-      gravity: { y: 0 }
+      //debug: true,
+      gravity: { y: 0 },
+      enableBody: {}
     }
   },
   scale: {
-    width: '100%',
-    height: '100%'
+    width: "100%",
+    height: "100%"
   }
 };
 
@@ -24,11 +25,11 @@ var cursors;
 var score = 0;
 var game = new Phaser.Game(config);
 const dirs = {
-    UP: 12,
-    DOWN: 11,
-    LEFT: 13,
-    RIGHT: 14
-}
+  UP: 11,
+  DOWN: 12,
+  LEFT: 13,
+  RIGHT: 14
+};
 var chosenDir = null;
 
 function preload() {
@@ -39,7 +40,7 @@ function preload() {
     frameWidth: 32,
     frameHeight: 32
   });
-  this.load.spritesheet("ghosts", "../assets/ghosts32.png", {
+  this.load.spritesheet("ghosts", "../assets/ghosts.png", {
     frameWidth: 32,
     frameHeight: 32
   });
@@ -56,27 +57,29 @@ function create() {
   this.layer = this.map.createDynamicLayer("Pacman", this.tileset);
 
   loadAnims(this.anims);
-  this.pacman = new Sprite(this.scene.scene, 225, 280, "pacman");
-
+  this.pacman = new Sprite(this.scene.scene, 232, 280, "pacman");
+  this.pacman.setMap(this.map);
+  this.pacman.auto = false;
   this.pacman.play("munch");
 
   //Adding ghost sprites
-    var ghostAnims = ["ghostyblue", "ghostyellow", "ghostpink", "ghostred"];
-    var groupConfig = {
-        classType: Sprite,
-        setXY: {
-            x: 216,
-            y: 232
-        },
-        key: "ghosts",
-        repeat: 3
-    }
-    this.ghosts = this.physics.add.group(groupConfig);
-    var i = 0;
-    this.ghosts.children.iterate(function(ghost){
-        ghost.play(ghostAnims[i]);
-        i++;
-    });
+  var ghostAnims = ["ghostyblue", "ghostyellow", "ghostpink", "ghostred"];
+  var groupConfig = {
+    classType: Sprite,
+    setXY: {
+      x: 216,
+      y: 232
+    },
+    key: "ghosts",
+    repeat: 3
+  };
+  this.ghosts = this.physics.add.group(groupConfig);
+  var i = 0;
+  this.ghosts.children.iterate(function(ghost) {
+    ghost.play(ghostAnims[i]);
+    i++;
+    ghost.setMap(this.map);
+  }, this);
   //Collision detection for ghosts
   this.physics.add.collider(this.ghosts, this.layer);
 
@@ -96,112 +99,70 @@ function create() {
   cursors = this.input.keyboard.createCursorKeys();
 
   this.physics.add.collider(this.pacman, this.layer);
-    console.log(this.constructor.name);
+
+  const debugGraphics = this.add.graphics().setAlpha(0.75);
+
+  this.map.renderDebug(debugGraphics, {
+    tileColor: null, // Color of non-colliding tiles
+    collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+    faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
+  });
+  //this.map.setCollision([1], true, true, this.layer, true);
 }
 
 function update() {
-    this.physics.overlap(this.pacman, this.ghosts, killPacman, null, this);
-    this.ghosts.children.iterate(function(ghost) {
-        if(Math.round(ghost.body.x) % 16 === 0 && (Math.round(ghost.body.y) % 16 === 0)){
-            var ghostDir = checkDirection(ghost, this.map);
-            moveGhost(ghost, ghostDir);
-        }
-    }, this);
+  //this.pacman.body.x = Math.round(this.pacman.body.x);
+  //this.pacman.body.y = Math.round(this.pacman.body.y);
 
-    this.physics.overlap(this.pacman, this.dotss, eatDots, null, this);
+  this.physics.overlap(this.pacman, this.ghosts, killPacman, null, this);
+  this.ghosts.children.iterate(function(ghost) {
+    if (
+      Math.round(ghost.body.x) % 16 <= 1 &&
+      Math.round(ghost.body.y) % 16 <= 1
+    ) {
+      ghost.body.x = Math.round(ghost.body.x / 16) * 16;
+      ghost.body.y = Math.round(ghost.body.y / 16) * 16;
+      //var ghostDir = ghost.checkDirections();//checkDirection(ghost, this.map);
+      //moveGhost(ghost, ghostDir);
+      ghost.move();
+    }
+  }, this);
 
+  this.physics.overlap(this.pacman, this.dotss, eatDots, null, this);
+
+  const oldDirection = this.pacman.direction;
   // Horizontal movement
   if (cursors.left.isDown) {
-    this.pacman.body.setVelocityX(-100);
-    this.pacman.angle = 180;
+    this.pacman.direction = dirs.LEFT;
   } else if (cursors.right.isDown) {
-    this.pacman.body.setVelocityX(100);
-    this.pacman.angle = 0;
+    this.pacman.direction = dirs.RIGHT;
+  } else if (cursors.up.isDown) {
+    this.pacman.direction = dirs.UP;
+  } else if (cursors.down.isDown) {
+    this.pacman.direction = dirs.DOWN;
   }
 
-  // Vertical movement
-  else if (cursors.up.isDown) {
-    this.pacman.body.setVelocityY(-100);
-    this.pacman.angle = 270;
-  } else if (cursors.down.isDown) {
-    this.pacman.body.setVelocityY(100);
-    this.pacman.angle = 90;
-  }   
+  if (this.input.keyboard.checkDown(cursors.up, 1000)) {
+    console.log("Hello");
+  }
+
+  if (
+    this.pacman.direction === this.pacman.getOppositeDirection(oldDirection)
+  ) {
+    this.pacman.move();
+  } else if (
+    Math.round(this.pacman.body.x) % 16 <= 1 &&
+    Math.round(this.pacman.body.y) % 16 <= 1
+  ) {
+    this.pacman.body.x = Math.round(this.pacman.body.x / 16) * 16;
+    this.pacman.body.y = Math.round(this.pacman.body.y / 16) * 16;
+    this.pacman.move();
+  }
 }
 
-function moveGhost(ghost, dir){
-    ghost.body.x = Math.round(ghost.body.x);
-    ghost.body.y = Math.round(ghost.body.y);
-    ghost.x = Math.round(ghost.x);
-    ghost.y = Math.round(ghost.y);
-    var possMoves = [];
-    chosenDir = null;
-    for(var i = 0; i < 4; i++){
-        if(dir[i] !== null){
-            possMoves.push(dir[i]);
-        }
-    }
-
-    if(possMoves.length === 1){
-        chosenDir = possMoves[0];
-    } else {
-        var i = Phaser.Math.Between(0, possMoves.length - 1);
-        chosenDir = possMoves[i];
-    }
-    
-    if(chosenDir === dirs.UP){
-        ghost.setVelocityY(-100);
-        ghost.setVelocityX(0);
-    } else if(chosenDir === dirs.DOWN){
-        ghost.setVelocityY(100);
-        ghost.setVelocityX(0);
-    } else if(chosenDir === dirs.LEFT){
-        ghost.setVelocityY(0);
-        ghost.setVelocityX(-100);
-    } else if(chosenDir === dirs.RIGHT){
-        ghost.setVelocityY(0);
-        ghost.setVelocityX(100);
-    }
-}
-
-function checkDirection(sprite, map){
-    var tile = map.getTileAtWorldXY(sprite.x, sprite.y, this.layer);
-    var dir = [null, null, null, null];
-    var dirr = [dirs.DOWN, dirs.UP, dirs.RIGHT, dirs.LEFT];
-    dir[0] = map.getTileAt(tile.x, tile.y + 1, this.layer);
-    dir[1] = map.getTileAt(tile.x, tile.y - 1, this.layer);
-    dir[2] = map.getTileAt(tile.x + 1, tile.y, this.layer);
-    dir[3] = map.getTileAt(tile.x - 1, tile.y, this.layer);
-    
-    var numOfWalls = 0;
-    for(var i = 0; i < 4; i++){
-        if(dir[i].index !== 14){
-            dir[i] = null;
-            dirr[i] = null;
-            numOfWalls++;
-        }
-    }
-    if(numOfWalls !== 3){
-        if(dir[0] !== null && sprite.body.facing === dirs.DOWN){
-            dir[0] = null;
-            dirr[0] = null;
-        } else if(dir[1] !== null && sprite.body.facing === dirs.UP){
-            dir[1] = null;
-            dirr[1] = null;
-        } else if(dir[2] !== null && sprite.body.facing === dirs.LEFT) {
-            dir[2] = null;
-            dirr[2] = null;
-        } else if(dir[3] !== null && sprite.body.facing === dirs.RIGHT){
-            dir[3] = null;
-            dirr[3] = null;
-        }
-    }
-    return dirr;
-}
-
-function killPacman(pacman, ghost){
-   console.log("DEAD"); 
-   pacman.visible = false;
+function killPacman(pacman, ghost) {
+  console.log("DEAD");
+  pacman.visible = false;
 }
 
 function eatDots(pacman, dot) {
@@ -218,5 +179,5 @@ function eatDots(pacman, dot) {
       child.body.setEnable(true);
     });
   }
-  console.log(score.toString());
+  //console.log(score.toString());
 }
